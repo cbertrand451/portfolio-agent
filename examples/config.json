@@ -1,0 +1,8 @@
+{
+  "state_path": ".portfolio-agent/state.sqlite3",
+  "max_retries": 3,
+  "retry_base_seconds": 30,
+  "retry_cap_seconds": 3600,
+  "lease_seconds": 300,
+  "job_budget_seconds": 5400
+}
