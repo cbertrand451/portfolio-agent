@@ -1,0 +1,13 @@
+{
+  "state_path": ".portfolio-agent/state.sqlite3",
+  "discovery": {
+    "account": "YOUR-ACCOUNT",
+    "account_type": "user",
+    "source_repository": "YOUR-ACCOUNT/portfolio-agent",
+    "issue_repository": "YOUR-ACCOUNT/portfolio-agent",
+    "exclude_repositories": ["YOUR-ACCOUNT/YOUR-ACCOUNT.github.io"],
+    "include_forks": false,
+    "include_archived": false,
+    "mentions": []
+  }
+}

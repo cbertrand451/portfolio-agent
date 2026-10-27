@@ -8,13 +8,15 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from .config import AgentConfig
+from .discovery import Discovery, Registry
+from .github import GitHubClient, GitHubError
 from .logging import configure_logging
 from .scheduler import Scheduler
 from .store import SQLiteStateStore
 
 
 def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(description="Portfolio Agent: local Phase 1 simulation")
+    root = argparse.ArgumentParser(description="Portfolio Agent: simulation and public discovery")
     root.add_argument("--config", type=Path, help="JSON configuration file")
     root.add_argument("--state", type=Path, help="override the local SQLite path")
     commands = root.add_subparsers(dest="command", required=True)
@@ -32,6 +34,13 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--max-steps", type=int, default=100)
     commands.add_parser("status")
     commands.add_parser("audit")
+    commands.add_parser("discover", help="read public repository metadata into the local registry")
+    notify = commands.add_parser("notify", help="preview approval Issues; --apply writes to GitHub")
+    notify.add_argument("--apply", action="store_true", help="create missing approval Issues")
+    registry = commands.add_parser("registry", help="show durable discovery records")
+    registry.add_argument(
+        "--audit", action="store_true", help="show discovery and notification audit"
+    )
     return root
 
 
@@ -43,6 +52,23 @@ def main(argv: list[str] | None = None) -> int:
         config = AgentConfig.load(args.config)
         if args.state is not None:
             config = AgentConfig.model_validate({**config.model_dump(), "state_path": args.state})
+        if args.command in {"discover", "notify", "registry"}:
+            if args.command != "registry" and config.discovery is None:
+                raise ValueError("discovery configuration required")
+            registry = Registry(config.state_path)
+            if args.command == "registry":
+                result = registry.events() if args.audit else registry.records()
+            else:
+                client = GitHubClient.from_environment(
+                    require_token=args.command == "notify" and args.apply
+                )
+                discovery = Discovery(registry, client, config.discovery)
+                if args.command == "discover":
+                    result = discovery.scan()
+                else:
+                    result = discovery.notify() if args.apply else discovery.plan()
+            print(json.dumps(result, indent=2))
+            return 0
         scheduler = Scheduler(SQLiteStateStore(config.state_path), config)
         if args.command == "enqueue":
             result = scheduler.enqueue(
@@ -57,6 +83,10 @@ def main(argv: list[str] | None = None) -> int:
         else:
             result = [event.model_dump(mode="json") for event in scheduler.snapshot().audit]
         print(json.dumps(result, indent=2))
+    except GitHubError as error:
+        root.exit(
+            2, f"error: {error}; inspect registry and retry reconciliation after resolving access\n"
+        )
     except (ValidationError, ValueError, KeyError, OSError, sqlite3.Error):
         # Validation errors may contain untrusted input. Keep CLI failures bounded and safe.
         root.exit(

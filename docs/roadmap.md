@@ -3,7 +3,7 @@
 | Phase | Deliverable | Status |
 | --- | --- | --- |
 | 1 | Local scaffold, architecture, typed configuration/state, simulated scheduler, transactional store, tests, CLI, CI | Implemented for review |
-| 2 | Public repository discovery (including empty repositories), durable registry, duplicate-safe approval Issues | Planned |
+| 2 | Public repository discovery (including empty repositories), durable registry, duplicate-safe approval Issues | Implemented for review |
 | 3 | Deterministic Issue commands, authorized users, decisions and audit | Planned |
 | 4 | Shared durable queue, distributed locking, checkpoint artifacts, dispatch/reconciliation, lost-wakeup protection | Planned |
 | 5 | Deterministic bounded repository analysis, no code execution | Planned |

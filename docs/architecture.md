@@ -81,5 +81,17 @@ and authorization. Repository analysis will read bounded data without executing
 source. LLM providers (Ollama, llama.cpp, mock) will return schema-validated,
 untrusted data through a separate execution interface. Publishing will consume
 approved artifacts and create reviewable PRs under an explicit output contract.
-Case study and gallery card tasks will be independent. No website code or GitHub
-API adapter is built speculatively in this milestone.
+Case study and gallery card tasks will be independent. No website code is generated.
+
+## Phase 2 discovery boundary
+
+The CLI now exposes a separate discovery application service and a bounded GitHub
+REST adapter. `discover` records public repository metadata; `notify` previews
+Issue requests; `notify --apply` delivers them. Registry, notification, and discovery
+audit tables share the local SQLite file but do not alter the Phase 1 task snapshot
+or authorize any scheduler task. Stable GitHub repository IDs survive renames.
+
+Issue creation uses a committed local reservation and remote marker reconciliation.
+Ambiguous requests remain blocked from automatic re-creation. This is a conservative
+single-machine delivery protocol, not a distributed queue or exactly-once remote
+transaction. Read [discovery](discovery.md) for operational limits and recovery.

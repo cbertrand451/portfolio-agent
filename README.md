@@ -1,12 +1,14 @@
 # GitHub Portfolio Agent
 
 A fully open-source orchestration foundation for an agent that will turn approved
-GitHub projects into reviewed portfolio case studies. **Phase 1 only:** everything
-runs locally with deterministic simulated jobs. No GitHub credentials, paid APIs,
-model downloads, or inference hardware are required.
+GitHub projects into reviewed portfolio case studies. Phase 1 provides deterministic
+local simulated jobs. Phase 2 adds public repository discovery, a durable local
+registry, and explicit approval Issue delivery. No paid APIs, model downloads, or
+inference hardware are required. Issue creation requires a GitHub token.
 
 The main portfolio website (`cbertrand451.github.io`) is outside this project's
-scope. This milestone does not generate pages, contact GitHub, or publish content.
+scope. The agent does not generate pages or publish content yet. Only the explicit
+discovery and notification commands contact GitHub; simulation remains offline.
 
 ## Setup
 
@@ -79,11 +81,31 @@ src/portfolio_agent/
   worker.py       Pure simulated stage execution
   logging.py      Allowlisted JSON events
   cli.py          Local command interface
+  github.py       Bounded public GitHub REST adapter
+  discovery.py    Repository registry and duplicate-safe approval Issues
 examples/         Non-secret example configuration
 tests/            Deterministic unit and local integration tests
 docs/             Architecture, state machine, security, and roadmap
 .github/workflows/tests.yml
 ```
+
+## Discover public repositories (Phase 2)
+
+Copy `examples/discovery.json` to `discovery.local.json` and set your account,
+Issue destination, agent source repository, exclusions, and optional mentions.
+
+```bash
+portfolio-agent --config discovery.local.json discover
+portfolio-agent --config discovery.local.json registry
+portfolio-agent --config discovery.local.json notify
+```
+
+Review the preview before providing `GITHUB_TOKEN` and explicitly running
+`notify --apply`. Creating Issues may notify repository subscribers. The source
+and destination repositories are excluded, and mentions are disabled by default.
+Issues do not approve generation or accept commands yet. See the
+[discovery guide](docs/discovery.md) for permissions, Windows usage, failure
+recovery, and the requirement to share one durable local database.
 
 ## Implemented and planned
 
@@ -91,16 +113,21 @@ Implemented: typed models, explicit transitions, initial and stage approvals,
 priority/FIFO selection, repository-scoped idempotency, single local worker claim,
 checkpoint persistence, bounded retries, expired-claim recovery, atomic audit,
 JSON logging, CLI simulation, and test CI on Python 3.11–3.13.
+Phase 2 adds paginated public discovery (including empty repositories), explicit
+exclusions, stable-ID registry persistence, previewed Issue requests, durable
+notification reservations, reconciliation after ambiguous failures, and mocked
+GitHub adapter/integration tests.
 
-Planned: repository discovery and Issue notifications (Phase 2); authorized Issue
-commands (3); shared durable storage, automatic dispatch, cross-runner locking,
+Planned: authorized Issue commands (3); shared durable storage, automatic dispatch,
+cross-runner locking,
 and robust recovery (4); analysis (5); local LLM adapters and benchmarks (6);
 asset approvals (7); modular page generation (8); gallery cards (9); PR publishing
 and manual edit preservation (10); private repositories and advanced tooling (11).
 
 Read [architecture](docs/architecture.md), [scheduler and state machine](docs/scheduler.md),
 [development and testing](docs/development.md), [security](docs/security.md), and
-[roadmap](docs/roadmap.md). This milestone is ready for review before Phase 2.
+[roadmap](docs/roadmap.md). Phase 2 is implemented for review; live discovery and
+notification settings must be confirmed before creating approval Issues.
 
 ## License
 

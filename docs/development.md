@@ -13,8 +13,11 @@ pytest --cov=portfolio_agent --cov-report=term-missing
 The suite injects a fake clock instead of sleeping. Temporary SQLite databases
 exercise real persistence, rollback, restart recovery, idempotency, and competing
 scheduler instances. Pure simulated workers provide deterministic outputs and
-failures. CLI tests cover a complete approval lifecycle. GitHub API mocking will
-be added with the GitHub adapter; there is no adapter to mock in Phase 1.
+failures. CLI tests cover a complete approval lifecycle. GitHub adapter tests mock
+HTTP responses and transport errors. Discovery tests use a fake API and real
+temporary SQLite databases to cover filtering, empty repositories, renames,
+restarts, competing notifiers, and ambiguous POST recovery. No test creates a real
+GitHub Issue or requires a token.
 
 Tests cover initial gating, priority and FIFO ties, global ownership, approval
 waits, non-interruption, completion, bounded/capped retries, expired ownership,
